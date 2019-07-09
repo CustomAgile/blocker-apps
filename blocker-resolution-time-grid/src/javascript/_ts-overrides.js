@@ -1,49 +1,44 @@
-Ext.override(Rally.ui.combobox.ComboBox,{
-  applyState: function(state){
-
+Ext.override(Rally.ui.combobox.ComboBox, {
+  applyState(state) {
     this.setValue(state.value);
 
-    this.store.on('load', function() {
+    this.store.on('load', function () {
         this.setValue(state.value);
         this.saveState();
-    }, this, {single: true});
+    }, this, { single: true });
 
-    this.on('ready', function(){
+    this.on('ready', function () {
       this.setValue(state.value);
       this.saveState();
-    }, this, {single: true});
-
-
-
+    }, this, { single: true });
   }
 });
 
-Ext.override(Ext.form.RadioGroup,{
-  applyState: function(state) {
+Ext.override(Ext.form.RadioGroup, {
+  applyState(state) {
     if (state && state.value) {
         this.setValue(state.value);
     }
   },
-  getState: function() {
-        var me = this,
+  getState() {
+        let me = this,
             state = {};
 
-        if (me.getValue()){
+        if (me.getValue()) {
           state.value = me.getValue();
         }
 
         return state;
     },
-    saveState: function() {
-
-           var me = this,
+    saveState() {
+           let me = this,
                id = me.stateful && me.getStateId(),
                hasListeners = me.hasListeners,
                state;
 
            if (id) {
              console.log('saveState radio state', me.getState());
-               state = me.getState() || {};    //pass along for custom interactions
+               state = me.getState() || {}; // pass along for custom interactions
                if (!hasListeners.beforestatesave || me.fireEvent('beforestatesave', me, state) !== false) {
                    Ext.state.Manager.set(id, state);
                    if (hasListeners.statesave) {
@@ -53,14 +48,12 @@ Ext.override(Ext.form.RadioGroup,{
            }
        },
 
-
 });
 
-
 Ext.override(Ext.data.proxy.Server, {
-    timeout : 180000,
-    processResponse: function(success, operation, request, response, callback, scope) {
-        var me = this,
+    timeout: 180000,
+    processResponse(success, operation, request, response, callback, scope) {
+        let me = this,
             reader,
             result;
 
@@ -70,9 +63,8 @@ Ext.override(Ext.data.proxy.Server, {
             result = reader.read(me.extractResponseData(response));
 
             if (result.success !== false) {
-
                 Ext.apply(operation, {
-                    response: response,
+                    response,
                     resultSet: result
                 });
 
@@ -90,27 +82,23 @@ Ext.override(Ext.data.proxy.Server, {
             me.fireEvent('exception', this, response, operation);
         }
 
-
-        if (typeof callback == 'function') {
+        if (typeof callback === 'function') {
             callback.call(scope || me, operation);
         }
 
         me.afterRequest(request, success);
     },
 
-
-    setException: function(operation, response) {
+    setException(operation, response) {
         operation.setException({
-            status: response.status ,
+            status: response.status,
             statusText: response.statusText
         });
     },
 
-
     extractResponseData: Ext.identityFn,
 
-
-    applyEncoding: function(value) {
+    applyEncoding(value) {
         return Ext.encode(value);
     },
 });

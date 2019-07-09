@@ -1,97 +1,97 @@
-Ext.define('AgingCalculator',{
+Ext.define('AgingCalculator', {
     singleton: true,
-    getFieldHash: function(snapsForOid, arrayOfFields){
-        var fieldHash = {};
-        Ext.each(snapsForOid, function(snap){
-            Ext.each(arrayOfFields, function(f){
-                var snapVal = snap[f];
-                var currentVal = fieldHash[f] || '';
+    getFieldHash(snapsForOid, arrayOfFields) {
+        let fieldHash = {};
+        Ext.each(snapsForOid, (snap) => {
+            Ext.each(arrayOfFields, (f) => {
+                let snapVal = snap[f];
+                let currentVal = fieldHash[f] || '';
                 fieldHash[f] = snapVal;
             });
         });
         return fieldHash;
     },
-    getFieldCurrentValue: function(snapsForOid, field){
-        return snapsForOid[snapsForOid.length-1][field];
+    getFieldCurrentValue(snapsForOid, field) {
+        return snapsForOid[snapsForOid.length - 1][field];
     },
-    calculateMobility: function(snapsForOid, previousValueField, currentField, fieldValue, mobilityField){
-        var startValue = null;
-        var currentValue = null;
+    calculateMobility(snapsForOid, previousValueField, currentField, fieldValue, mobilityField) {
+        let startValue = null;
+        let currentValue = null;
         if (snapsForOid.length > 0) {
-            var previousValue = snapsForOid[0][currentField];
-            var previousValueField = "_PreviousValues." + currentField;
-            if (snapsForOid[0][previousValueField] != undefined){
+            let previousValue = snapsForOid[0][currentField];
+            var previousValueField = `_PreviousValues.${currentField}`;
+            if (snapsForOid[0][previousValueField] != undefined) {
                 previousValue = snapsForOid[0][previousValueField];
             }
 
-            Ext.each(snapsForOid, function(snap){
-                if (snap[currentField] != previousValue){
-                    if (snap[currentField] === fieldValue){
+            Ext.each(snapsForOid, (snap) => {
+                if (snap[currentField] != previousValue) {
+                    if (snap[currentField] === fieldValue) {
                         startValue = snap[mobilityField];
                     }
                 }
                 previousValue = snap[currentField];
-            },this);
+            }, this);
 
-            currentValue = snapsForOid[snapsForOid.length-1][mobilityField];
+            currentValue = snapsForOid[snapsForOid.length - 1][mobilityField];
         }
-        return {startValue: startValue, currentValue: currentValue}
+        return { startValue, currentValue };
     },
-    calculateDurations: function(snapsForOid, currentField, fieldValue, blockedAfterDate){
-        var granularity = "hour";
-        var conversionDivisor = 24;
-        var threshhold = 24;
-        var ages = [];
-        var earliestStartDate = null;
-        var lastEndDate = null;
+    calculateDurations(snapsForOid, currentField, fieldValue, blockedAfterDate) {
+        let granularity = 'hour';
+        let conversionDivisor = 24;
+        let threshhold = 24;
+        let ages = [];
+        let earliestStartDate = null;
+        let lastEndDate = null;
 
         if (snapsForOid.length > 0) {
-            var startDate = null;
-            var endDate = Rally.util.DateTime.fromIsoString(snapsForOid[0]._ValidFrom);
-            if (blockedAfterDate == undefined || blockedAfterDate == null){
+            let startDate = null;
+            let endDate = Rally.util.DateTime.fromIsoString(snapsForOid[0]._ValidFrom);
+            if (blockedAfterDate == undefined || blockedAfterDate == null) {
                 blockedAfterDate = Rally.util.DateTime.fromIsoString(snapsForOid[0]._ValidFrom);
             }
 
-            var previousValue = snapsForOid[0][currentField];
-            var previousValueField = "_PreviousValues." + currentField;
-            if (snapsForOid[0][previousValueField] != undefined){
+            let previousValue = snapsForOid[0][currentField];
+            let previousValueField = `_PreviousValues.${currentField}`;
+            if (snapsForOid[0][previousValueField] != undefined) {
                 previousValue = snapsForOid[0][previousValueField];
             } else {
                 previousValue = false;
             }
-            var isCurrent = false;
-            Ext.each(snapsForOid, function(snap){
-                if (snap[currentField] != previousValue){
-                    var date = Rally.util.DateTime.fromIsoString(snap._ValidFrom);
-                    if (snap[currentField] === fieldValue && date >= blockedAfterDate){
+            let isCurrent = false;
+            Ext.each(snapsForOid, (snap) => {
+                if (snap[currentField] != previousValue) {
+                    let date = Rally.util.DateTime.fromIsoString(snap._ValidFrom);
+                    if (snap[currentField] === fieldValue && date >= blockedAfterDate) {
                         startDate = date;
-                        if (earliestStartDate == null){
+                        if (earliestStartDate == null) {
                             earliestStartDate = date;
                         }
                     }
-                    if (startDate && previousValue === fieldValue){
+                    if (startDate && previousValue === fieldValue) {
                         lastEndDate = date;
-                        var diff = Rally.util.DateTime.getDifference(date, startDate,granularity);
-                        if (diff >= threshhold){
-                            ages.push(diff/conversionDivisor);
+                        let diff = Rally.util.DateTime.getDifference(date, startDate, granularity);
+                        if (diff >= threshhold) {
+                            ages.push(diff / conversionDivisor);
                         }
                         startDate = null;
                     }
                 }
                 previousValue = snap[currentField];
-                if (Rally.util.DateTime.fromIsoString(snap._ValidTo) > new Date()){
+                if (Rally.util.DateTime.fromIsoString(snap._ValidTo) > new Date()) {
                     isCurrent = true;
                 }
-            },this);
+            }, this);
 
-            if (startDate != null && isCurrent){
-                var diff = Rally.util.DateTime.getDifference(new Date(),startDate,granularity);
-                if (diff >= threshhold){
-                    ages.push(diff/conversionDivisor);
+            if (startDate != null && isCurrent) {
+                let diff = Rally.util.DateTime.getDifference(new Date(), startDate, granularity);
+                if (diff >= threshhold) {
+                    ages.push(diff / conversionDivisor);
                 }
             }
         }
-        return {durations: ages, earliestStartDate: earliestStartDate, lastEndDate: lastEndDate};
+        return { durations: ages, earliestStartDate, lastEndDate };
     }
 
 });

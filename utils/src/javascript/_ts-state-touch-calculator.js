@@ -4,8 +4,8 @@
         config: {
             startDate: null,
             endDate: null,
-            dateFormat: "F",
-            granularity: "month"
+            dateFormat: 'F',
+            granularity: 'month'
         },
 
         /**
@@ -36,7 +36,7 @@
          *
          * @return {Array} a list of derived fields objects
          */
-        getDerivedFieldsOnInput: function () {
+        getDerivedFieldsOnInput() {
             return [];
         },
 
@@ -48,10 +48,6 @@
          * specifying:
          *   return [{
          *      "field": "CompletedStoryCount",
-
-
-
-
 
          *      "as": "Completed Stories",
          *      "f": "sum",
@@ -73,7 +69,7 @@
          *
          * @return {Array} a list of metric objects
          */
-        getMetrics: function () {
+        getMetrics() {
             return [];
         },
 
@@ -117,7 +113,7 @@
          *
          * @return {Array}
          */
-        getSummaryMetricsConfig: function () {
+        getSummaryMetricsConfig() {
             return [];
         },
 
@@ -151,86 +147,90 @@
          *
          * @return {Array}
          */
-        getDerivedFieldsAfterSummary: function () {
+        getDerivedFieldsAfterSummary() {
             return [];
         },
 
         /**
          * @inheritdoc
          */
-        runCalculation: function (snapshots) {
-            
-            var snaps_by_oid = Rally.technicalservices.Toolbox.aggregateSnapsByOid(snapshots);
-            
+        runCalculation(snapshots) {
+            let snaps_by_oid = Rally.technicalservices.Toolbox.aggregateSnapsByOid(snapshots);
 
-            var date_buckets = Rally.technicalservices.Toolbox.getDateBuckets(this.startDate, this.endDate, this.granularity);
-            var series = this._getSeries(snaps_by_oid,date_buckets,this.granularity);
-            var categories = Rally.technicalservices.Toolbox.formatDateBuckets(date_buckets, this.dateFormat);  
-            return {categories: categories, series: series};
+            let date_buckets = Rally.technicalservices.Toolbox.getDateBuckets(this.startDate, this.endDate, this.granularity);
+            let series = this._getSeries(snaps_by_oid, date_buckets, this.granularity);
+            let categories = Rally.technicalservices.Toolbox.formatDateBuckets(date_buckets, this.dateFormat);  
+            return { categories, series };
         },
-        _getSeries: function(snaps_by_oid, buckets, granularity){
+        _getSeries(snaps_by_oid, buckets, granularity) {
+            let total_counter = _.range(buckets.length).map(() => 0),
+                blocked_counter = _.range(buckets.length).map(() => 0);
+            let export_data = []; 
             
-            var total_counter = _.range(buckets.length).map(function () { return 0 }),
-                blocked_counter =_.range(buckets.length).map(function () { return 0 });
-            var export_data = []; 
-            
-            Ext.Object.each(snaps_by_oid, function(oid, snaps){
-                var oid_end_date = null, oid_start_date = null,
-                    oid_blocked_end_date = null, oid_blocked_start_date = null,
-                    oid_blocked = false, reason = null, fid = null, name = null; 
+            Ext.Object.each(snaps_by_oid, function (oid, snaps) {
+                let oid_end_date = null, 
+oid_start_date = null,
+                    oid_blocked_end_date = null, 
+oid_blocked_start_date = null,
+                    oid_blocked = false, 
+reason = null, 
+fid = null, 
+name = null; 
                 
-                Ext.each(snaps, function(snap){
+                Ext.each(snaps, (snap) => {
                     reason = snap.BlockedReason;  
                     name = snap.Name;
                     fid = snap.FormattedID;  
                     
-                    var snap_from_date = Rally.util.DateTime.fromIsoString(snap._ValidFrom);
-                    if (oid_start_date == null ||  snap_from_date < oid_start_date){
+                    let snap_from_date = Rally.util.DateTime.fromIsoString(snap._ValidFrom);
+                    if (oid_start_date == null || snap_from_date < oid_start_date) {
                         oid_start_date = snap_from_date;
                     }
-                    var snap_to_date = Rally.util.DateTime.fromIsoString(snap._ValidTo);
-                    if (oid_end_date == null || oid_end_date < snap_to_date){
+                    let snap_to_date = Rally.util.DateTime.fromIsoString(snap._ValidTo);
+                    if (oid_end_date == null || oid_end_date < snap_to_date) {
                         oid_end_date = snap_to_date;
                     }
                     
-                    if (snap.Blocked){
+                    if (snap.Blocked) {
                         oid_blocked = true; 
-                        if (oid_blocked_start_date == null || oid_blocked_start_date > snap_from_date){
+                        if (oid_blocked_start_date == null || oid_blocked_start_date > snap_from_date) {
                             oid_blocked_start_date = snap_from_date;
                         }
-                        if (oid_blocked_end_date == null || oid_blocked_end_date < snap_to_date){
+                        if (oid_blocked_end_date == null || oid_blocked_end_date < snap_to_date) {
                             oid_blocked_end_date = snap_to_date;  
                         }
                     }
                 });
-                var data = {FormattedID: fid, Name: name, Blocked: oid_blocked, BlockedDate: oid_blocked_start_date, UnblockedDate: oid_blocked_end_date};
-                for (var i=0; i<buckets.length; i++){
-                    data[Rally.util.DateTime.format(buckets[i],this.dateFormat)] = 0;
-                    if (oid_end_date >= buckets[i] && oid_start_date < Rally.util.DateTime.add(buckets[i],granularity,1)){
+                let data = {
+ FormattedID: fid, Name: name, Blocked: oid_blocked, BlockedDate: oid_blocked_start_date, UnblockedDate: oid_blocked_end_date 
+};
+                for (let i = 0; i < buckets.length; i++) {
+                    data[Rally.util.DateTime.format(buckets[i], this.dateFormat)] = 0;
+                    if (oid_end_date >= buckets[i] && oid_start_date < Rally.util.DateTime.add(buckets[i], granularity, 1)) {
                         total_counter[i]++;
                     }
-                    if (oid_blocked){
-                      if (oid_blocked_start_date < Rally.util.DateTime.add(buckets[i],granularity,1) && oid_blocked_end_date >= buckets[i]){
-                            data[Rally.util.DateTime.format(buckets[i],this.dateFormat)] = 1;  
+                    if (oid_blocked) {
+                      if (oid_blocked_start_date < Rally.util.DateTime.add(buckets[i], granularity, 1) && oid_blocked_end_date >= buckets[i]) {
+                            data[Rally.util.DateTime.format(buckets[i], this.dateFormat)] = 1;  
                             blocked_counter[i]++;
                         }
                     }
                 }
                 export_data.push(data);
-            },this);
+            }, this);
             
-            var blocked_pct = _.range(buckets.length).map(function () { return 0 }),
-            not_blocked_pct = _.range(buckets.length).map(function () { return 0 });  
+            let blocked_pct = _.range(buckets.length).map(() => 0),
+            not_blocked_pct = _.range(buckets.length).map(() => 0);  
             
-            for(var i=0; i< buckets.length; i++){
-                blocked_pct[i] = Math.round(blocked_counter[i]/total_counter[i] * 100);
-                not_blocked_pct[i] = Math.round((total_counter[i] - blocked_counter[i])/total_counter[i] *100);  
+            for (let i = 0; i < buckets.length; i++) {
+                blocked_pct[i] = Math.round(blocked_counter[i] / total_counter[i] * 100);
+                not_blocked_pct[i] = Math.round((total_counter[i] - blocked_counter[i]) / total_counter[i] * 100);  
             }
             this.data = export_data; 
-            return [{name: '% Not Blocked', data: not_blocked_pct, stack: 1},
-                    {name: '% Blocked', data: blocked_pct, stack: 1}];
+            return [{ name: '% Not Blocked', data: not_blocked_pct, stack: 1 },
+                    { name: '% Blocked', data: blocked_pct, stack: 1 }];
         },
-        getData: function(){
+        getData() {
             return this.data; 
         }
 

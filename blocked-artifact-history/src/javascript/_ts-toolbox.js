@@ -1,84 +1,79 @@
-Ext.define('Rally.technicalservices.Toolbox',{
+Ext.define('Rally.technicalservices.Toolbox', {
     singleton: true,
     /**
      * Returns beginnig of month as date for the current time zone
      *
      */
-    getBeginningOfMonthAsDate: function(dateInMonth){
-        var year = dateInMonth.getFullYear();
-        var month = dateInMonth.getMonth();
-        return new Date(year,month,1,0,0,0,0);
+    getBeginningOfMonthAsDate(dateInMonth) {
+        let year = dateInMonth.getFullYear();
+        let month = dateInMonth.getMonth();
+        return new Date(year, month, 1, 0, 0, 0, 0);
     },
-    getEndOfMonthAsDate: function(dateInMonth){
-        var year = dateInMonth.getFullYear();
-        var month = dateInMonth.getMonth();
-        var day = new Date(year, month+1,0).getDate();
-        return new Date(year,month,day,0,0,0,0);
+    getEndOfMonthAsDate(dateInMonth) {
+        let year = dateInMonth.getFullYear();
+        let month = dateInMonth.getMonth();
+        let day = new Date(year, month + 1, 0).getDate();
+        return new Date(year, month, day, 0, 0, 0, 0);
     },
-    aggregateSnapsByOid: function(snaps){
-        //Return a hash of objects (key=ObjectID) with all snapshots for the object
-        var snaps_by_oid = {};
-        Ext.each(snaps, function(snap){
-            var oid = snap.ObjectID || snap.get('ObjectID');
-            if (snaps_by_oid[oid] == undefined){
+    aggregateSnapsByOid(snaps) {
+        // Return a hash of objects (key=ObjectID) with all snapshots for the object
+        let snaps_by_oid = {};
+        Ext.each(snaps, (snap) => {
+            let oid = snap.ObjectID || snap.get('ObjectID');
+            if (snaps_by_oid[oid] == undefined) {
                 snaps_by_oid[oid] = [];
             }
             snaps_by_oid[oid].push(snap);
-
         });
         return snaps_by_oid;
     },
-    getCaseInsensitiveKey: function(obj, inputStr){
-        var new_key = inputStr;
-        Ext.Object.each(obj, function(key, val){
-            if (new_key.toLowerCase() == key.toLowerCase()){
+    getCaseInsensitiveKey(obj, inputStr) {
+        let new_key = inputStr;
+        Ext.Object.each(obj, (key, val) => {
+            if (new_key.toLowerCase() == key.toLowerCase()) {
                 new_key = key;
             }
         });
         return new_key;
-
     },
-    aggregateSnapsByOidForModel: function(snaps){
-        //Return a hash of objects (key=ObjectID) with all snapshots for the object
-        var snaps_by_oid = {};
-        Ext.each(snaps, function(snap){
-            var oid = snap.ObjectID || snap.get('ObjectID');
-            if (snaps_by_oid[oid] == undefined){
+    aggregateSnapsByOidForModel(snaps) {
+        // Return a hash of objects (key=ObjectID) with all snapshots for the object
+        let snaps_by_oid = {};
+        Ext.each(snaps, (snap) => {
+            let oid = snap.ObjectID || snap.get('ObjectID');
+            if (snaps_by_oid[oid] == undefined) {
                 snaps_by_oid[oid] = [];
             }
             snaps_by_oid[oid].push(snap.getData());
-
         });
         return snaps_by_oid;
     },
-    getDateBuckets: function(startDate, endDate, granularity){
+    getDateBuckets(startDate, endDate, granularity) {
+        let bucketStartDate = Rally.technicalservices.Toolbox.getBeginningOfMonthAsDate(startDate);
+        let bucketEndDate = Rally.technicalservices.Toolbox.getEndOfMonthAsDate(endDate);
 
-        var bucketStartDate = Rally.technicalservices.Toolbox.getBeginningOfMonthAsDate(startDate);
-        var bucketEndDate = Rally.technicalservices.Toolbox.getEndOfMonthAsDate(endDate);
+        let date = bucketStartDate;
 
-        var date = bucketStartDate;
-
-        var buckets = [];
-        while (date<bucketEndDate && bucketStartDate < bucketEndDate){
+        let buckets = [];
+        while (date < bucketEndDate && bucketStartDate < bucketEndDate) {
             buckets.push(date);
-            date = Rally.util.DateTime.add(date,granularity,1);
+            date = Rally.util.DateTime.add(date, granularity, 1);
         }
         return buckets;
     },
-    formatDateBuckets: function(buckets, dateFormat){
-        var categories = [];
-        Ext.each(buckets, function(bucket){
-            categories.push(Rally.util.DateTime.format(bucket,dateFormat));
+    formatDateBuckets(buckets, dateFormat) {
+        let categories = [];
+        Ext.each(buckets, (bucket) => {
+            categories.push(Rally.util.DateTime.format(bucket, dateFormat));
         });
-        categories[categories.length-1] += "*";
+        categories[categories.length - 1] += '*';
         return categories;
     },
-    getLinkByOid: function(objectType, objectId, linkText){
-
-        var urlText = Ext.String.format("/{0}/{1}",objectType.toLowerCase(),objectId),
+    getLinkByOid(objectType, objectId, linkText) {
+        let urlText = Ext.String.format('/{0}/{1}', objectType.toLowerCase(), objectId),
             url = Rally.nav.Manager.getDetailUrl(urlText);
 
-        return Ext.String.format('<a href="{0}" target="_blank">{1}</a>',url,linkText);
+        return Ext.String.format('<a href="{0}" target="_blank">{1}</a>', url, linkText);
     }
 
 });

@@ -2,7 +2,7 @@
  * A link that pops up a version dialog box
  */
 
-Ext.define('Rally.technicalservices.InfoLink',{
+Ext.define('Rally.technicalservices.InfoLink', {
     extend: 'Ext.Component',
     alias: 'widget.tsinfolink',
     
@@ -18,24 +18,23 @@ Ext.define('Rally.technicalservices.InfoLink',{
      * cfg {String} title
      * The title for the dialog box
      */
-     title: "Build Information",
+     title: 'Build Information',
     
     renderTpl: "<div id='{id}-infolinkWrap' class='tsinfolink'>i</div>",
 
-    initComponent: function() {
+    initComponent() {
         this.callParent(arguments);
-       
     },
     
-    onRender: function() {
+    onRender() {
         this.callParent(arguments);
-        this.mon(this.el,'click',this.onClick,this);
+        this.mon(this.el, 'click', this.onClick, this);
     },
-    _generateChecksum: function(string){
-        var chk = 0x12345678,
+    _generateChecksum(string) {
+        let chk = 0x12345678,
             i;
-        string = string.replace(/var CHECKSUM = .*;/,"");
-        string = string.replace(/\s/g,"");  //Remove all whitespace from the string.
+        string = string.replace(/var CHECKSUM = .*;/, '');
+        string = string.replace(/\s/g, ''); // Remove all whitespace from the string.
         
         for (i = 0; i < string.length; i++) {
             chk += (string.charCodeAt(i) * i);
@@ -43,53 +42,53 @@ Ext.define('Rally.technicalservices.InfoLink',{
     
         return chk;
     },
-    _checkChecksum: function(container) {
-        var me = this;
+    _checkChecksum(container) {
+        let me = this;
         Ext.Ajax.request({
             url: document.URL,
             params: {
                 id: 1
             },
-            success: function (response) {
+            success(response) {
                 text = response.responseText;
-                if ( CHECKSUM ) {
-                    if ( CHECKSUM !== me._generateChecksum(text) ) {
+                if (CHECKSUM) {
+                    if (CHECKSUM !== me._generateChecksum(text)) {
                         console.log("Checksums don't match!");
-                        if ( me.dialog ) {
-                            me.dialog.add({xtype:'container',html:'Checksums do not match'});
+                        if (me.dialog) {
+                            me.dialog.add({ xtype: 'container', html: 'Checksums do not match' });
                         }
                     }
                 }
             }
         });
     },
-    onClick: function(e) {
-        var me = this;
+    onClick(e) {
+        let me = this;
         this._checkChecksum(this);
         
-        var dialog_items = [];
+        let dialog_items = [];
         
-        if ( this.informationHtml ) {
+        if (this.informationHtml) {
             dialog_items.push({
-                xtype:'container',
+                xtype: 'container',
                 html: this.informationHtml
             });
         }
                 
         dialog_items.push({
-            xtype:'container',
-            html:"This app was created by the Rally Technical Services Team."
+            xtype: 'container',
+            html: 'This app was created by the Rally Technical Services Team.'
         });
         
-        if ( APP_BUILD_DATE ) {
+        if (APP_BUILD_DATE) {
             dialog_items.push({
-                xtype:'container',
-                html:'Build date/time: ' + APP_BUILD_DATE
+                xtype: 'container',
+                html: `Build date/time: ${APP_BUILD_DATE}`
             });
         }
         
-        if (this.dialog){this.dialog.destroy();}
-        this.dialog = Ext.create('Rally.ui.dialog.Dialog',{
+        if (this.dialog) { this.dialog.destroy(); }
+        this.dialog = Ext.create('Rally.ui.dialog.Dialog', {
             defaults: { padding: 5, margin: 5 },
             closable: true,
             draggable: true,

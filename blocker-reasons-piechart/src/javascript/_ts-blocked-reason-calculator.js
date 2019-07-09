@@ -34,7 +34,7 @@
          *
          * @return {Array} a list of derived fields objects
          */
-        getDerivedFieldsOnInput: function () {
+        getDerivedFieldsOnInput() {
             return [];
         },
 
@@ -66,7 +66,7 @@
          *
          * @return {Array} a list of metric objects
          */
-        getMetrics: function () {
+        getMetrics() {
             return [];
         },
 
@@ -110,7 +110,7 @@
          *
          * @return {Array}
          */
-        getSummaryMetricsConfig: function () {
+        getSummaryMetricsConfig() {
             return [];
         },
 
@@ -144,52 +144,51 @@
          *
          * @return {Array}
          */
-        getDerivedFieldsAfterSummary: function () {
+        getDerivedFieldsAfterSummary() {
             return [];
         },
-        runCalculation: function (snapshots) {
-            this.logger.log("runCalculations snapshots",snapshots.length, snapshots);
+        runCalculation(snapshots) {
+            this.logger.log('runCalculations snapshots', snapshots.length, snapshots);
             
-            var snaps_by_oid = Rally.technicalservices.Toolbox.aggregateSnapsByOid(snapshots);
+            let snaps_by_oid = Rally.technicalservices.Toolbox.aggregateSnapsByOid(snapshots);
             
-            var series = this._getSeries(snaps_by_oid);
+            let series = this._getSeries(snaps_by_oid);
 
-            return {categories: [], series: series};
+            return { categories: [], series };
         },
-        _getSeries: function(snaps_by_oid, date_buckets){
-
-           var blocked_durations = Rally.technicalservices.BlockedToolbox.getBlockedDurations(snaps_by_oid);
-           var count_data = this.getCountsByReason(blocked_durations);
+        _getSeries(snaps_by_oid, date_buckets) {
+           let blocked_durations = Rally.technicalservices.BlockedToolbox.getBlockedDurations(snaps_by_oid);
+           let count_data = this.getCountsByReason(blocked_durations);
             
             this.data = count_data.data;  
-            var series_data = []; 
-            Ext.Object.each(count_data.counts, function(key,val){
-                series_data.push([key,val]);
-            },this);
-            return [{type: 'pie', name: this.chartTitle, data: series_data}];
+            let series_data = []; 
+            Ext.Object.each(count_data.counts, (key, val) => {
+                series_data.push([key, val]);
+            }, this);
+            return [{ type: 'pie', name: this.chartTitle, data: series_data }];
         },
-        getCountsByReason: function(blocked_durations){
-            var counts = {};
-            var data = [];  
-            Ext.each(blocked_durations, function(duration){
-                if (duration.BlockedReason){
-                    var globalReason = this._getGlobalReason(duration.BlockedReason);
+        getCountsByReason(blocked_durations) {
+            let counts = {};
+            let data = [];  
+            Ext.each(blocked_durations, function (duration) {
+                if (duration.BlockedReason) {
+                    let globalReason = this._getGlobalReason(duration.BlockedReason);
                     count_key = Rally.technicalservices.Toolbox.getCaseInsensitiveKey(counts, globalReason);
-                    if (counts[count_key] == undefined){
+                    if (counts[count_key] == undefined) {
                         counts[count_key] = 0; 
                     } 
                     counts[count_key]++; 
                 }
-                data.push({FormattedID: duration.FormattedID, Name: duration.Name, BlockedReason: duration.BlockedReason});
-            },this);
-            return {counts: counts, data: data};  
+                data.push({ FormattedID: duration.FormattedID, Name: duration.Name, BlockedReason: duration.BlockedReason });
+            }, this);
+            return { counts, data };  
         },
-        getData: function(){
+        getData() {
             return this.data;  
         },
-        _getGlobalReason: function(reason){
-            var match = /^(.*?) - (.*)/.exec(reason);
-            if (match){
+        _getGlobalReason(reason) {
+            let match = /^(.*?) - (.*)/.exec(reason);
+            if (match) {
                 return match[1].trim();
             }
             return reason;

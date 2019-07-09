@@ -1,7 +1,7 @@
 Ext.override(Ext.data.proxy.Server, {
-    timeout : 180000,
-    processResponse: function(success, operation, request, response, callback, scope) {
-        var me = this,
+    timeout: 180000,
+    processResponse(success, operation, request, response, callback, scope) {
+        let me = this,
             reader,
             result;
 
@@ -11,9 +11,8 @@ Ext.override(Ext.data.proxy.Server, {
             result = reader.read(me.extractResponseData(response));
 
             if (result.success !== false) {
-
                 Ext.apply(operation, {
-                    response: response,
+                    response,
                     resultSet: result
                 });
 
@@ -31,27 +30,23 @@ Ext.override(Ext.data.proxy.Server, {
             me.fireEvent('exception', this, response, operation);
         }
 
-
-        if (typeof callback == 'function') {
+        if (typeof callback === 'function') {
             callback.call(scope || me, operation);
         }
 
         me.afterRequest(request, success);
     },
 
-
-    setException: function(operation, response) {
+    setException(operation, response) {
         operation.setException({
-            status: response.status ,
+            status: response.status,
             statusText: response.statusText
         });
     },
 
-
     extractResponseData: Ext.identityFn,
 
-
-    applyEncoding: function(value) {
+    applyEncoding(value) {
         return Ext.encode(value);
     },
 });

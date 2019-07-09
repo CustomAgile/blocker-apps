@@ -7,67 +7,68 @@
  *    See https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md
  */
 
-/*global self */
-/*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
+/* global self */
+/* jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
 
 /*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
 
 var saveAs = saveAs
         // IE 10+ (native saveAs)
-    || (typeof navigator !== "undefined" &&
+    || (typeof navigator !== 'undefined' &&
     navigator.msSaveOrOpenBlob && navigator.msSaveOrOpenBlob.bind(navigator))
         // Everyone else
-    || (function(view) {
-        "use strict";
+    || (function (view) {
+        'use strict';
+
         // IE <10 is explicitly unsupported
-        if (typeof navigator !== "undefined" &&
+        if (typeof navigator !== 'undefined' &&
             /MSIE [1-9]\./.test(navigator.userAgent)) {
             return;
         }
-        var
-            doc = view.document
+        let
+            doc = view.document,
         // only get URL when necessary in case Blob.js hasn't overridden it yet
-            , get_URL = function() {
+             get_URL = function () {
                 return view.URL || view.webkitURL || view;
-            }
-            , save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
-            , can_use_save_link = !view.externalHost && "download" in save_link
-            , click = function(node) {
-                var event = doc.createEvent("MouseEvents");
+            },
+             save_link = doc.createElementNS('http://www.w3.org/1999/xhtml', 'a'),
+             can_use_save_link = !view.externalHost && 'download' in save_link,
+             click = function (node) {
+                let event = doc.createEvent('MouseEvents');
                 event.initMouseEvent(
-                    "click", true, false, view, 0, 0, 0, 0, 0
+                    'click', true, false, view, 0, 0, 0, 0, 0
                     , false, false, false, false, 0, null
                 );
                 node.dispatchEvent(event);
-            }
-            , webkit_req_fs = view.webkitRequestFileSystem
-            , req_fs = view.requestFileSystem || webkit_req_fs || view.mozRequestFileSystem
-            , throw_outside = function(ex) {
-                (view.setImmediate || view.setTimeout)(function() {
+            },
+             webkit_req_fs = view.webkitRequestFileSystem,
+             req_fs = view.requestFileSystem || webkit_req_fs || view.mozRequestFileSystem,
+             throw_outside = function (ex) {
+                (view.setImmediate || view.setTimeout)(() => {
                     throw ex;
                 }, 0);
-            }
-            , force_saveable_type = "application/octet-stream"
-            , fs_min_size = 0
-            , deletion_queue = []
-            , process_deletion_queue = function() {
-                var i = deletion_queue.length;
+            },
+             force_saveable_type = 'application/octet-stream',
+             fs_min_size = 0,
+             deletion_queue = [],
+             process_deletion_queue = function () {
+                let i = deletion_queue.length;
                 while (i--) {
-                    var file = deletion_queue[i];
-                    if (typeof file === "string") { // file is an object URL
+                    let file = deletion_queue[i];
+                    if (typeof file === 'string') { // file is an object URL
                         get_URL().revokeObjectURL(file);
                     } else { // file is a File
                         file.remove();
                     }
                 }
                 deletion_queue.length = 0; // clear queue
-            }
-            , dispatch = function(filesaver, event_types, event) {
+            },
+             dispatch = function (filesaver, event_types, event) {
                 event_types = [].concat(event_types);
-                var i = event_types.length;
+                let i = event_types.length;
                 while (i--) {
-                    var listener = filesaver["on" + event_types[i]];
-                    if (typeof listener === "function") {
+                    let listener = filesaver[`on${event_types[i]}`];
+                    if (typeof listener === 'function') {
                         try {
                             listener.call(filesaver, event || filesaver);
                         } catch (ex) {
@@ -75,25 +76,25 @@ var saveAs = saveAs
                         }
                     }
                 }
-            }
-            , FileSaver = function(blob, name) {
+            },
+             FileSaver = function (blob, name) {
                 // First try a.download, then web filesystem, then object URLs
-                var
-                    filesaver = this
-                    , type = blob.type
-                    , blob_changed = false
-                    , object_url
-                    , target_view
-                    , get_object_url = function() {
-                        var object_url = get_URL().createObjectURL(blob);
+                let
+                    filesaver = this,
+                     type = blob.type,
+                     blob_changed = false,
+                     object_url,
+                     target_view,
+                     get_object_url = function () {
+                        let object_url = get_URL().createObjectURL(blob);
                         deletion_queue.push(object_url);
                         return object_url;
-                    }
-                    , dispatch_all = function() {
-                        dispatch(filesaver, "writestart progress write writeend".split(" "));
-                    }
+                    },
+                     dispatch_all = function () {
+                        dispatch(filesaver, 'writestart progress write writeend'.split(' '));
+                    },
                 // on any filesys errors revert to saving with object URLs
-                    , fs_error = function() {
+                     fs_error = function () {
                         // don't create more object URLs than needed
                         if (blob_changed || !object_url) {
                             object_url = get_object_url(blob);
@@ -101,24 +102,23 @@ var saveAs = saveAs
                         if (target_view) {
                             target_view.location.href = object_url;
                         } else {
-                            window.open(object_url, "_blank");
+                            window.open(object_url, '_blank');
                         }
                         filesaver.readyState = filesaver.DONE;
                         dispatch_all();
-                    }
-                    , abortable = function(func) {
-                        return function() {
+                    },
+                     abortable = function (func) {
+                        return function () {
                             if (filesaver.readyState !== filesaver.DONE) {
                                 return func.apply(this, arguments);
                             }
                         };
-                    }
-                    , create_if_not_found = {create: true, exclusive: false}
-                    , slice
-                    ;
-                filesaver.readyState = filesaver.INIT;
+                    },
+                     create_if_not_found = { create: true, exclusive: false },
+                     slice;
+filesaver.readyState = filesaver.INIT;
                 if (!name) {
-                    name = "download";
+                    name = 'download';
                 }
                 if (can_use_save_link) {
                     object_url = get_object_url(blob);
@@ -140,8 +140,8 @@ var saveAs = saveAs
                 // Since I can't be sure that the guessed media type will trigger a download
                 // in WebKit, I append .download to the filename.
                 // https://bugs.webkit.org/show_bug.cgi?id=65440
-                if (webkit_req_fs && name !== "download") {
-                    name += ".download";
+                if (webkit_req_fs && name !== 'download') {
+                    name += '.download';
                 }
                 if (type === force_saveable_type || webkit_req_fs) {
                     target_view = view;
@@ -151,28 +151,28 @@ var saveAs = saveAs
                     return;
                 }
                 fs_min_size += blob.size;
-                req_fs(view.TEMPORARY, fs_min_size, abortable(function(fs) {
-                    fs.root.getDirectory("saved", create_if_not_found, abortable(function(dir) {
-                        var save = function() {
-                            dir.getFile(name, create_if_not_found, abortable(function(file) {
-                                file.createWriter(abortable(function(writer) {
-                                    writer.onwriteend = function(event) {
+                req_fs(view.TEMPORARY, fs_min_size, abortable((fs) => {
+                    fs.root.getDirectory('saved', create_if_not_found, abortable((dir) => {
+                        let save = function () {
+                            dir.getFile(name, create_if_not_found, abortable((file) => {
+                                file.createWriter(abortable((writer) => {
+                                    writer.onwriteend = function (event) {
                                         target_view.location.href = file.toURL();
                                         deletion_queue.push(file);
                                         filesaver.readyState = filesaver.DONE;
-                                        dispatch(filesaver, "writeend", event);
+                                        dispatch(filesaver, 'writeend', event);
                                     };
-                                    writer.onerror = function() {
-                                        var error = writer.error;
+                                    writer.onerror = function () {
+                                        let error = writer.error;
                                         if (error.code !== error.ABORT_ERR) {
                                             fs_error();
                                         }
                                     };
-                                    "writestart progress write abort".split(" ").forEach(function(event) {
-                                        writer["on" + event] = filesaver["on" + event];
+                                    'writestart progress write abort'.split(' ').forEach((event) => {
+                                        writer[`on${event}`] = filesaver[`on${event}`];
                                     });
                                     writer.write(blob);
-                                    filesaver.abort = function() {
+                                    filesaver.abort = function () {
                                         writer.abort();
                                         filesaver.readyState = filesaver.DONE;
                                     };
@@ -180,11 +180,11 @@ var saveAs = saveAs
                                 }), fs_error);
                             }), fs_error);
                         };
-                        dir.getFile(name, {create: false}, abortable(function(file) {
+                        dir.getFile(name, { create: false }, abortable((file) => {
                             // delete file if it already exists
                             file.remove();
                             save();
-                        }), abortable(function(ex) {
+                        }), abortable((ex) => {
                             if (ex.code === ex.NOT_FOUND_ERR) {
                                 save();
                             } else {
@@ -193,16 +193,15 @@ var saveAs = saveAs
                         }));
                     }), fs_error);
                 }), fs_error);
-            }
-            , FS_proto = FileSaver.prototype
-            , saveAs = function(blob, name) {
+            },
+             FS_proto = FileSaver.prototype,
+             saveAs = function (blob, name) {
                 return new FileSaver(blob, name);
-            }
-            ;
-        FS_proto.abort = function() {
-            var filesaver = this;
+            };
+FS_proto.abort = function () {
+            let filesaver = this;
             filesaver.readyState = filesaver.DONE;
-            dispatch(filesaver, "abort");
+            dispatch(filesaver, 'abort');
         };
         FS_proto.readyState = FS_proto.INIT = 0;
         FS_proto.WRITING = 1;
@@ -217,25 +216,21 @@ var saveAs = saveAs
                                 FS_proto.onwriteend =
                                     null;
 
-        view.addEventListener("unload", process_deletion_queue, false);
-        saveAs.unload = function() {
+        view.addEventListener('unload', process_deletion_queue, false);
+        saveAs.unload = function () {
             process_deletion_queue();
-            view.removeEventListener("unload", process_deletion_queue, false);
+            view.removeEventListener('unload', process_deletion_queue, false);
         };
         return saveAs;
-    }(
-        typeof self !== "undefined" && self
-        || typeof window !== "undefined" && window
-        || this.content
-    ));
+    }(typeof self !== 'undefined' && self
+        || typeof window !== 'undefined' && window
+        || this.content));
 // `self` is undefined in Firefox for Android content script context
 // while `this` is nsIContentFrameMessageManager
 // with an attribute `content` that corresponds to the window
 
-if (typeof module !== "undefined" && module !== null) {
+if (typeof module !== 'undefined' && module !== null) {
     module.exports = saveAs;
-} else if ((typeof define !== "undefined" && define !== null) && (define.amd != null)) {
-    define([], function() {
-        return saveAs;
-    });
+} else if ((typeof define !== 'undefined' && define !== null) && (define.amd != null)) {
+    define([], () => saveAs);
 }

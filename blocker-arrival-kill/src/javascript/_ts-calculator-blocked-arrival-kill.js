@@ -5,7 +5,7 @@
         config: {
             startDate: null,
             endDate: new Date(),
-            granularity: "month",
+            granularity: 'month',
             categoryDateFormat: null
         },
 
@@ -37,7 +37,7 @@
          *
          * @return {Array} a list of derived fields objects
          */
-        getDerivedFieldsOnInput: function () {
+        getDerivedFieldsOnInput() {
             return [];
         },
 
@@ -69,7 +69,7 @@
          *
          * @return {Array} a list of metric objects
          */
-        getMetrics: function () {
+        getMetrics() {
             return [];
         },
 
@@ -113,17 +113,17 @@
          *
          * @return {Array}
          */
-        getSummaryMetricsConfig: function () {
+        getSummaryMetricsConfig() {
             return [];
         },
 
-        prepareChartData: function (store) {
-            console.log('prepareChartData',store);
-            var snapshots = [];
-            store.each(function (record) {
+        prepareChartData(store) {
+            console.log('prepareChartData', store);
+            let snapshots = [];
+            store.each((record) => {
                 snapshots.push(record.raw);
             });
-            console.log("ok",snapshots);
+            console.log('ok', snapshots);
             return this.runCalculation(snapshots);
         },
         /**
@@ -156,49 +156,49 @@
          *
          * @return {Array}
          */
-        getDerivedFieldsAfterSummary: function () {
+        getDerivedFieldsAfterSummary() {
             return [];
         },
-        runCalculation: function (snapshots) {
-            this.logger.log("runCalculation snapshots",snapshots.length, snapshots);
+        runCalculation(snapshots) {
+            this.logger.log('runCalculation snapshots', snapshots.length, snapshots);
             
-            var snaps_by_oid = Rally.technicalservices.Toolbox.aggregateSnapsByOid(snapshots); //._aggregateSnapshots(snapshots);
-            var buckets = Rally.technicalservices.Toolbox.getDateBuckets(this.startDate, this.endDate, this.granularity); 
+            let snaps_by_oid = Rally.technicalservices.Toolbox.aggregateSnapsByOid(snapshots); // ._aggregateSnapshots(snapshots);
+            let buckets = Rally.technicalservices.Toolbox.getDateBuckets(this.startDate, this.endDate, this.granularity); 
             
-            //Blocked during month, unblocked during month 
-            var series = this._getSeries(snaps_by_oid, buckets);
+            // Blocked during month, unblocked during month 
+            let series = this._getSeries(snaps_by_oid, buckets);
 
-            var categories = Rally.technicalservices.Toolbox.formatDateBuckets(buckets, this.dateFormat);
-            return {categories: categories, series: series};
+            let categories = Rally.technicalservices.Toolbox.formatDateBuckets(buckets, this.dateFormat);
+            return { categories, series };
         },
-        _getSeries: function(snaps_by_oid, date_buckets){
-            this.logger.log("_getSeries", snaps_by_oid);
+        _getSeries(snaps_by_oid, date_buckets) {
+            this.logger.log('_getSeries', snaps_by_oid);
             
-            var blocked_buckets = [];
-            var unblocked_buckets = [];
-            for (var i=0; i<date_buckets.length; i++){
+            let blocked_buckets = [];
+            let unblocked_buckets = [];
+            for (let i = 0; i < date_buckets.length; i++) {
                 blocked_buckets[i] = 0;
                 unblocked_buckets[i] = 0;
             }
-            var data = [];
-            var blocked_durations = Rally.technicalservices.BlockedToolbox.getBlockedDurations(snaps_by_oid);
-            Ext.each(blocked_durations, function(duration){
-                for(var i=0; i< date_buckets.length; i++){
-                    if (duration.UnblockedDate >= date_buckets[i] && duration.UnblockedDate < Rally.util.DateTime.add(date_buckets[i],this.granularity,1)){
+            let data = [];
+            let blocked_durations = Rally.technicalservices.BlockedToolbox.getBlockedDurations(snaps_by_oid);
+            Ext.each(blocked_durations, function (duration) {
+                for (let i = 0; i < date_buckets.length; i++) {
+                    if (duration.UnblockedDate >= date_buckets[i] && duration.UnblockedDate < Rally.util.DateTime.add(date_buckets[i], this.granularity, 1)) {
                         unblocked_buckets[i]++; 
                     }
-                    if (duration.BlockedDate >= date_buckets[i] && duration.BlockedDate < Rally.util.DateTime.add(date_buckets[i],this.granularity,1)){
+                    if (duration.BlockedDate >= date_buckets[i] && duration.BlockedDate < Rally.util.DateTime.add(date_buckets[i], this.granularity, 1)) {
                         blocked_buckets[i]++; 
                     }
                 }
                 data.push(duration);
             }, this);
             this.data = data;
-            var blocked_data = _.map(blocked_buckets, function(py){return {y: py, color: 'red'}});
-            var unblocked_data = _.map(unblocked_buckets, function(py){return {y: py, color: 'green'}});
-            return [{name:'Blocked',  data: blocked_buckets},{name:'Unblocked', data: unblocked_buckets}];  
+            let blocked_data = _.map(blocked_buckets, py => ({ y: py, color: 'red' }));
+            let unblocked_data = _.map(unblocked_buckets, py => ({ y: py, color: 'green' }));
+            return [{ name: 'Blocked', data: blocked_buckets }, { name: 'Unblocked', data: unblocked_buckets }];  
         },
-        getData: function(){
+        getData() {
             return this.data;  
         }
     });

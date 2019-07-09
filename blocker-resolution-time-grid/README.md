@@ -1,15 +1,15 @@
-#Blocker Resolution Time
+# Blocker Resolution Time
 
 This app displays a grid with the blocked reasons and the mean, min and max
 days to resolution as well as a total of blockers included in the calculations.  
 [Get the code...](https://raw.githubusercontent.com/RallyTechServices/blocker-apps/master/blocker-resolution-time-grid/deploy/App.txt)
 
-##Criteria Parameters:
+## Criteria Parameters:
 
  * Start Date - selected by the "Show data from" drop down 
  * Project    - project selected in the top left corner  
 
-##The data included in this chart will be the following:  
+## The data included in this chart will be the following:  
 
  * Any work items (Tasks, Defects or User Stories) that were changed 
    ON or AFTER the selected start date

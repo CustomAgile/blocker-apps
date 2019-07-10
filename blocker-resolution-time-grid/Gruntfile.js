@@ -47,9 +47,18 @@ module.exports = function(grunt) {
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+        watch: {
+            scripts: {
+                files: ['**/*.js'],
+                tasks: ['uglify:ugly', 'template:apikey'],
+                options: {
+                    spawn: false,
+                },
+            },
+        },
         uglify: {
             options: {
-                mangle: true
+                mangle: false
             },
             ugly: {
                 files: { 'deploy/app.min.js': config.js_files }
@@ -69,6 +78,12 @@ module.exports = function(grunt) {
                 variables: config
             },
             apikey: {
+                src: 'templates/App-apikey-tpl.html',
+                dest: 'deploy/ExternalApp.html',
+                engine: 'underscore',
+                variables: config
+            },
+            allJson: {
                 src: 'templates/App-apikey-tpl.html',
                 dest: 'deploy/ExternalApp.html',
                 engine: 'underscore',
@@ -138,7 +153,8 @@ module.exports = function(grunt) {
     //load
     grunt.loadNpmTasks('grunt-templater');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
-    grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-uglify-es');
+    grunt.loadNpmTasks('grunt-contrib-watch');
     //tasks
     grunt.registerTask('default', ['debug', 'build', 'apikey']);
 

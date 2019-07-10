@@ -3,11 +3,11 @@
 <head>
     <title>Blocker Resolution Time</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Jul 09 2019 22:21:46 GMT-0500 (Central Daylight Time) -->
+    <!--  Build Date: Mon Nov 11 2019 15:51:25 GMT-0500 (Eastern Standard Time) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Tue Jul 09 2019 22:21:46 GMT-0500 (Central Daylight Time)";
-        var CHECKSUM = 47063618358;
+        var APP_BUILD_DATE = "Mon Nov 11 2019 15:51:25 GMT-0500 (Eastern Standard Time)";
+        var CHECKSUM = 46994018436;
     </script>
     
     <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
@@ -1042,20 +1042,20 @@ Ext.define('CustomApp', {
             }
         });
 
-        // var cb = this.down('#time_box').add({
-        //     xtype: 'combobox',
-        //     store: store,
-        //     queryMode: 'local',
-        //     fieldLabel: 'Show data from',
-        //     displayField: 'name',
-        //     valueField: 'value',
-        //     value: -3,
-        //     minWidth: 300,
-        //     listeners: {
-        //         scope: this,
-        //         select: this._fetchData
-        //     }
-        // });
+        let cb = this.down('#time_box').add({
+            xtype: 'combobox',
+            store,
+            queryMode: 'local',
+            fieldLabel: 'Show data from',
+            displayField: 'name',
+            valueField: 'value',
+            value: -3,
+            minWidth: 300,
+            listeners: {
+                scope: this,
+                select: this._fetchData
+            }
+        });
         this.down('#selection_box').add({
             xtype: 'rallybutton',
             itemId: 'btn-export',

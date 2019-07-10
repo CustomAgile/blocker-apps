@@ -25,7 +25,7 @@ Ext.define('CustomApp', {
         { name: 'Last 12 Complete Months', value: -12 }
     ],
     defaultPickerOption: 'Last 3 Complete Months',
-    /**
+    /** 
      * Store Config
      */
     types: ['HierarchicalRequirement', 'Defect', 'Task'],
@@ -141,20 +141,20 @@ Ext.define('CustomApp', {
             }
         });
 
-        // var cb = this.down('#time_box').add({
-        //     xtype: 'combobox',
-        //     store: store,
-        //     queryMode: 'local',
-        //     fieldLabel: 'Show data from',
-        //     displayField: 'name',
-        //     valueField: 'value',
-        //     value: -3,
-        //     minWidth: 300,
-        //     listeners: {
-        //         scope: this,
-        //         select: this._fetchData
-        //     }
-        // });
+        let cb = this.down('#time_box').add({
+            xtype: 'combobox',
+            store,
+            queryMode: 'local',
+            fieldLabel: 'Show data from',
+            displayField: 'name',
+            valueField: 'value',
+            value: -3,
+            minWidth: 300,
+            listeners: {
+                scope: this,
+                select: this._fetchData
+            }
+        });
         this.down('#selection_box').add({
             xtype: 'rallybutton',
             itemId: 'btn-export',
@@ -254,8 +254,8 @@ Ext.define('CustomApp', {
     _fetchData(cb) {
         let me = this;
         this.logger.log('_fetchData', cb);
-        let start_date,
-            end_date = new Date();
+        let startDate;
+        // let endDate = new Date();
 
         // var start_date = Rally.util.DateTime.toIsoString(Rally.util.DateTime.add(new Date(),"month",cb.getValue()));
         let project = this.getContext().getProject().ObjectID;
@@ -274,25 +274,24 @@ Ext.define('CustomApp', {
         if (cb.name == 'Iteration') {
             find.Iteration = { $in: this.timebox_oids };
             if (me.timeboxValue) {
-                start_date = new Date(me.timeboxValue.getRecord().get('StartDate'));
-                end_date = new Date(me.timeboxValue.getRecord().get('EndDate'));
+                startDate = new Date(me.timeboxValue.getRecord().get('StartDate'));
+                endDate = new Date(me.timeboxValue.getRecord().get('EndDate'));
             }
         } else if (cb.name == 'Release') {
             find.Release = { $in: this.timebox_oids };
             if (me.timeboxValue) {
-                start_date = new Date(me.timeboxValue.getRecord().get('ReleaseStartDate'));
-                end_date = new Date(me.timeboxValue.getRecord().get('ReleaseDate'));
+                startDate = new Date(me.timeboxValue.getRecord().get('ReleaseStartDate'));
+                endDate = new Date(me.timeboxValue.getRecord().get('ReleaseDate'));
             }
         } else {
-            start_date = Rally.technicalservices.Toolbox.getBeginningOfMonthAsDate(Rally.util.DateTime.add(new Date(), 'month', cb.getValue()));
+            startDate = Rally.technicalservices.Toolbox.getBeginningOfMonthAsDate(Rally.util.DateTime.add(new Date(), 'month', cb.getValue()));
         }
 
-        find._ValidFrom = { $gt: start_date };
+        find._ValidFrom = { $gt: startDate };
         // find["_ValidTo"] = {$lte: end_date};
-
-        // this.logger.log('_fetchData',project,start_date);
+        console.info(find);
         let store = Ext.create('Rally.data.lookback.SnapshotStore', {
-            exceptionHandler(proxy, response, operation) {
+            exceptionHandler(response) {
                 if (response == null) {
                     self.queryValid = false;
                 } else {
@@ -316,10 +315,10 @@ Ext.define('CustomApp', {
         store.on('load', this._mungeDataAndBuildGrid, this);
         store.load({ params: { removeUnauthorizedSnapshots: true } });
     },
-    _mungeDataAndBuildGrid(store, data, success) {
+    _mungeDataAndBuildGrid(data) {
         this.logger.log('_mungeDataAndBuildGrid', data);
 
-        let snaps_by_oid = Rally.technicalservices.Toolbox.aggregateSnapsByOidForModel(data);
+        let snaps_by_oid = Rally.technicalservices.Toolbox.aggregateSnapsByOidForModel(data.data.items);
         let processed_data = this._processData(snaps_by_oid);
         let statistics_data = this._calculateStatistics(processed_data);
         this._buildGrid(statistics_data);

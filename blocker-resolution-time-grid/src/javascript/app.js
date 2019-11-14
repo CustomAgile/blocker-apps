@@ -1,3 +1,7 @@
+/* eslint-disable no-restricted-globals */
+/* eslint-disable func-names */
+/* eslint-disable one-var */
+/* eslint-disable camelcase */
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
@@ -26,7 +30,7 @@ Ext.define('CustomApp', {
     ],
     defaultPickerOption: 'Last 3 Complete Months',
     /** 
-     * Store Config
+     * Store Config 
      */
     types: ['HierarchicalRequirement', 'Defect', 'Task'],
     hydrate: ['_TypeHierarchy'],
@@ -38,7 +42,7 @@ Ext.define('CustomApp', {
 
     _initialize() {
         let me = this;
-
+        this.getAllProjects();
         let store = Ext.create('Ext.data.Store', {
             fields: ['name', 'value'],
             data: this.pickerOptions
@@ -79,7 +83,7 @@ Ext.define('CustomApp', {
                     me.logger.log('radiobox change', rb.lastValue, rb.getValue());
                     me.down('#time_box').removeAll();
                     console.log('lastValue', rb.lastValue.timebox);
-                    if (rb.lastValue.timebox == 'T') {
+                    if (rb.lastValue.timebox === 'T') {
                         let cb = me.down('#time_box').add({
                             xtype: 'rallycombobox',
                             store,
@@ -100,7 +104,7 @@ Ext.define('CustomApp', {
                             }
                         });
                         me._fetchData(cb);
-                    } else if (rb.lastValue.timebox == 'I') {
+                    } else if (rb.lastValue.timebox === 'I') {
                         // console.log('me>>',me);
 
                         me.down('#time_box').add({
@@ -119,7 +123,7 @@ Ext.define('CustomApp', {
                                 }
                             }
                         });
-                    } else if (rb.lastValue.timebox == 'R') {
+                    } else if (rb.lastValue.timebox === 'R') {
                         me.down('#time_box').add({
                             xtype: 'rallyreleasecombobox',
                             fieldLabel: 'Release: ',
@@ -195,7 +199,7 @@ Ext.define('CustomApp', {
         let timeboxModel = '';
         let filters = [];
 
-        if (me.timeboxValue.name == 'Iteration') {
+        if (me.timeboxValue.name === 'Iteration') {
             timeboxModel = 'Iteration';
             filters = [{
                     property: 'Name',
@@ -213,7 +217,7 @@ Ext.define('CustomApp', {
                     value: me.timeboxValue.getRecord().get('EndDate').toISOString()
                 }
             ];
-        } else if (me.timeboxValue.name == 'Release') {
+        } else if (me.timeboxValue.name === 'Release') {
             timeboxModel = 'Release';
             filters = [{
                     property: 'Name',
@@ -271,13 +275,13 @@ Ext.define('CustomApp', {
             _ProjectHierarchy: { $in: [project] }
         };
 
-        if (cb.name == 'Iteration') {
+        if (cb.name === 'Iteration') {
             find.Iteration = { $in: this.timebox_oids };
             if (me.timeboxValue) {
                 startDate = new Date(me.timeboxValue.getRecord().get('StartDate'));
                 endDate = new Date(me.timeboxValue.getRecord().get('EndDate'));
             }
-        } else if (cb.name == 'Release') {
+        } else if (cb.name === 'Release') {
             find.Release = { $in: this.timebox_oids };
             if (me.timeboxValue) {
                 startDate = new Date(me.timeboxValue.getRecord().get('ReleaseStartDate'));
@@ -315,30 +319,30 @@ Ext.define('CustomApp', {
         store.on('load', this._mungeDataAndBuildGrid, this);
         store.load({ params: { removeUnauthorizedSnapshots: true } });
     },
-    _mungeDataAndBuildGrid(data) {
+    async _mungeDataAndBuildGrid(data) {
         this.logger.log('_mungeDataAndBuildGrid', data);
+        const allProjectsById = await this.getAllProjects();
 
         let snaps_by_oid = Rally.technicalservices.Toolbox.aggregateSnapsByOidForModel(data.data.items);
-        let processed_data = this._processData(snaps_by_oid);
+        let processed_data = this._processData(snaps_by_oid, allProjectsById);
         let statistics_data = this._calculateStatistics(processed_data);
         this._buildGrid(statistics_data);
     },
-    _processData(snaps_by_oid) {
-        let blocked_durations = Rally.technicalservices.BlockedToolbox.getBlockedDurations(snaps_by_oid);
-
+    _processData(snapsByOid, allProjectsById = {}) {
+        let blocked_durations = Rally.technicalservices.BlockedToolbox.getBlockedDurations(snapsByOid);
         let export_data = [];
-        let reason_data = {},
-            thisProject = this.getContext().getProject().Name;
+        let reason_data = {};
 
-        this.logger.log('_processData', snaps_by_oid, blocked_durations);
-        Ext.each(blocked_durations, function (duration) {
-            duration.Project = thisProject;
+        this.logger.log('_processData', snapsByOid, blocked_durations);
+        Ext.each(blocked_durations, function f(duration) {
+            duration.LastBlockedProject = `${allProjectsById[duration.finalSnap.Project].Name}`;
+            delete duration.finalSnap;
             export_data.push(duration);
             if (duration.BlockedReason && duration.BlockedReason.length > 0 && duration.BlockedDate && duration.UnblockedDate) {
                 let global_reason = this._getGlobalReason(duration.BlockedReason);
                 let key = Rally.technicalservices.Toolbox.getCaseInsensitiveKey(reason_data, global_reason);
 
-                if (reason_data[key] == undefined) {
+                if (reason_data[key] === undefined) {
                     reason_data[key] = [];
                 }
                 let daysToResolution = Math.ceil(Rally.util.DateTime.getDifference(duration.UnblockedDate, duration.BlockedDate, 'minute') / 1440);
@@ -441,5 +445,40 @@ Ext.define('CustomApp', {
             dataIndex: 'totalDuration',
             text: 'Total Days Blocked'
         }];
-    }
+    },
+
+    _allProjects: {},
+    async getAllProjects() {
+        if (_.keys(this._allProjects).length > 0) {
+            return this._allProjects;
+        }
+
+        function indexById(projects) {
+            const indexed = {};
+            projects.forEach((p) => {
+                indexed[p.get('ObjectID')] = p.data;
+            });
+            return indexed;
+        }
+        const resp = new Promise(((resolve, reject) => {
+            Ext.create('Rally.data.wsapi.Store', {
+                model: 'Project',
+                fetch: ['Name', 'ObjectID'],
+                pageSize: 2000,
+                autoLoad: true,
+                listeners: {
+                    load(store, records, success) {
+                        if (success) {
+                            this._allProjects = indexById(records);
+                            resolve(this._allProjects);
+                        } else {
+                            reject(new Error('Project Fetch Failed'));
+                        }
+                    }
+                }
+            });
+        }));
+        return resp;
+    },
+
 });

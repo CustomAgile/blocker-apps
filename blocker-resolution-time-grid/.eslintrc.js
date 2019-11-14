@@ -1,8 +1,6 @@
-
 module.exports = {
     "extends": "airbnb-base",
-    "env"
-    : {
+    "env": {
         "browser": true,
         "mocha": true,
         "es6": true
@@ -14,10 +12,10 @@ module.exports = {
         "ecmaVersion": 2017
     },
     rules: {
-        "no-dupe-class-members":'warn',
-        "strict":0,
-        "camelcase":'warn',
-        "function-paren-newline":'warn',
+        "no-dupe-class-members": 'warn',
+        "strict": 0,
+        "camelcase": 'warn',
+        "function-paren-newline": 'warn',
         "prefer-arrow-callback": ["error", { "allowNamedFunctions": true }],
         "no-unused-vars": [1, { "vars": "local", "args": "none", "varsIgnorePattern": "/^[A-Z][a-z0-9_-]{3,19}$/" }],
         "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 1 }],
@@ -44,9 +42,9 @@ module.exports = {
         "no-confusing-arrow": 0,
         "class-methods-use-this": 0,
         "no-underscore-dangle": 0,
+        "eol-last": 0,
         "one-var-declaration-per-line": ["error", "initializations"],
         "one-var": ["error", { "initialized": "never", "uninitialized": "always" }]
     },
-    "globals": {
-    }
+    "globals": {}
 };
